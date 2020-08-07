@@ -56,6 +56,7 @@ import com.o3dr.services.android.lib.drone.property.Altitude;
 import com.o3dr.services.android.lib.drone.property.Attitude;
 import com.o3dr.services.android.lib.drone.property.Battery;
 import com.o3dr.services.android.lib.drone.property.Gps;
+import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.Speed;
 import com.o3dr.services.android.lib.drone.property.State;
@@ -93,6 +94,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int DEFAULT_UDP_PORT = 14550;
     private static final int DEFAULT_USB_BAUD_RATE = 57600;
+
+    static LatLng mGuidedPoint; //가이드모드 목적지 저장
+    static Marker mMarkerGuide = new com.naver.maps.map.overlay.Marker(); //GCS 위치 표시  마커 옵션
+    static OverlayImage guideIcon = OverlayImage.fromResource(R.drawable.droneimg); // 가이드 모드 아이콘 설정
 
     //private Spinner modeSelector;
 
@@ -154,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+
 
 
     @Override
@@ -569,6 +575,53 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+
+    private void GuideModeDialog(final Drone drone, final LatLong point) {
+
+        AlertDialog.Builder alt_bld = new AlertDialog.Builder(getApplicationContext());
+        alt_bld.setMessage("확인하시면 가이드모드로 전환후 기체가 이동합니다.").setCancelable(false).setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+// Action for 'Yes' Button
+                VehicleApi.getApi(drone).setVehicleMode(VehicleMode.COPTER_GUIDED,
+                        new AbstractCommandListener() {
+                            @Override
+
+                            public void onSuccess() {
+
+                                ControlApi.getApi(drone).goTo(point, true, null);
+                            }
+
+                            @Override
+
+                            public void onError(int i) {
+
+                            }
+
+                            @Override
+                            public void onTimeout() {
+                            }
+                        });
+            }
+        }).setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+            }
+        });
+        AlertDialog alert = alt_bld.create();
+// Title for AlertDialog
+        alert.setTitle("Title");
+// Icon for AlertDialog
+        alert.setIcon(R.drawable.droneimg);
+        alert.show();
+    }
+
+    public static boolean CheckGoal(final Drone drone, LatLng recentLatLng) {
+        GuidedState guidedState = drone.getAttribute(AttributeType.GUIDED_STATE);
+        LatLng target = new LatLng(guidedState.getCoordinate().getLatitude(),
+                guidedState.getCoordinate().getLongitude());
+        return target.distanceTo(recentLatLng) <= 1;
+    }
+
     @Override
     public void onMapReady(@NonNull NaverMap naverMap) {
         this.mMap = naverMap;
@@ -578,7 +631,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         uiSettings.setScaleBarEnabled(false);
         uiSettings.setZoomControlEnabled(false);
 
+        mMap.setOnMapLongClickListener(new NaverMap.OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(@NonNull PointF pointF, @NonNull LatLng latLng) {
+                GuideModeDialog(drone, latLng);
+            }
+        });
 
 
     }
+
+
 }
