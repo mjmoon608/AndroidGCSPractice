@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.naver.maps.geometry.LatLng;
+import com.naver.maps.map.CameraPosition;
 import com.naver.maps.map.CameraUpdate;
 import com.naver.maps.map.MapFragment;
 import com.naver.maps.map.NaverMap;
@@ -291,31 +292,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onSuccess() {
-//                    alertUser("Taking off...");
-                    AlertDialog.Builder oDialog = new AlertDialog.Builder(getApplicationContext(),
-                            android.R.style.Theme_DeviceDefault_Light_Dialog);
-
-                    oDialog.setMessage("지정한 이륙 고도까지 기체가 상승합니다.\n안전거리를 유지하세요.")
-                            .setTitle("일반 Dialog")
-                            .setPositiveButton("아니오", new DialogInterface.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    Log.i("Dialog", "취소");
-                                    Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
-                                    onError(123);
-                                }
-                            })
-                            .setNeutralButton("예", new DialogInterface.OnClickListener()
-                            {
-                                public void onClick(DialogInterface dialog, int which)
-                                {
-                                    finish();
-                                }
-                            })
-                            .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
-                            .show();
+                    alertUser("Taking off...");
+//                    AlertDialog.Builder oDialog = new AlertDialog.Builder(getApplicationContext(),
+//                            android.R.style.Theme_DeviceDefault_Light_Dialog);
+//
+//                    oDialog.setMessage("지정한 이륙 고도까지 기체가 상승합니다.\n안전거리를 유지하세요.")
+//                            .setTitle("일반 Dialog")
+//                            .setPositiveButton("아니오", new DialogInterface.OnClickListener()
+//                            {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which)
+//                                {
+//                                    Log.i("Dialog", "취소");
+//                                    Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+//                                    onError(123);
+//                                }
+//                            })
+//                            .setNeutralButton("예", new DialogInterface.OnClickListener()
+//                            {
+//                                public void onClick(DialogInterface dialog, int which)
+//                                {
+//                                    finish();
+//                                }
+//                            })
+//                            .setCancelable(false) // 백버튼으로 팝업창이 닫히지 않도록 한다.
+//                            .show();
                 }
 
                 @Override
@@ -379,6 +380,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Gps loadGps = this.drone.getAttribute(AttributeType.GPS);
         this.dronePosition = loadGps.getPosition();
 
+
+
         if(dronePosition != null){
             this.droneMarker.setPosition(new LatLng(dronePosition.getLatitude(), dronePosition.getLongitude()));
 //            this.droneMarker.setMap(mMap);
@@ -408,11 +411,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void updateYaw() {
         TextView yawTextView = (TextView) findViewById(R.id.yawValueTextView);
         Attitude droneYaw = this.drone.getAttribute(AttributeType.ATTITUDE);
+        double bearingYaw;
         if (droneYaw.getYaw() < 0){
             yawTextView.setText(String.format("%3.1f", droneYaw.getYaw()*(-1)) + "deg");
+            bearingYaw = Double.parseDouble(String.format("%3.1f", droneYaw.getYaw()*(-1)));
         } else {
             yawTextView.setText(String.format("%3.1f", droneYaw.getYaw()) + "deg");
+            bearingYaw = Double.parseDouble(String.format("%3.1f", droneYaw.getYaw()));
         }
+//        Log.d("Yaw Type: ", droneYaw.getYaw() + "");
+        //드론 Yaw값으로 맵 이동하는 거 추가한건데 되는지 확인을 못해봄.
+        CameraPosition cameraPosition = new CameraPosition(
+                new LatLng(dronePosition.getLatitude(), dronePosition.getLongitude()), // 대상 지점
+                16, // 줌 레벨
+                0, // 기울임 각도
+                bearingYaw // 베어링 각도
+        );
+        mMap.setCameraPosition(cameraPosition);
 
     }
 
