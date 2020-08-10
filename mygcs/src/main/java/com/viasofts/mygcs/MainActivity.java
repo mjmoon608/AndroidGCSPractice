@@ -427,13 +427,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 //        Log.d("Yaw Type: ", droneYaw.getYaw() + "");
         //드론 Yaw값으로 맵 이동하는 거 추가한건데 되는지 확인을 못해봄.
-        CameraPosition cameraPosition = new CameraPosition(
-                new LatLng(dronePosition.getLatitude(), dronePosition.getLongitude()), // 대상 지점
-                16, // 줌 레벨
-                0, // 기울임 각도
-                bearingYaw // 베어링 각도
-        );
-        mMap.setCameraPosition(cameraPosition);
+//        CameraPosition cameraPosition = new CameraPosition(
+//                new LatLng(dronePosition.getLatitude(), dronePosition.getLongitude()), // 대상 지점
+//                16, // 줌 레벨
+//                0, // 기울임 각도
+//                bearingYaw // 베어링 각도
+//        );
+//        mMap.setCameraPosition(cameraPosition);
 
     }
 
@@ -635,7 +635,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onMapLongClick(@NonNull PointF pointF, @NonNull LatLng latLng) {
-                GuideModeDialog(drone, latLng);
+
+                GuideModeDialog(drone, new LatLong(latLng.latitude, latLng.longitude));
             }
         });
 
