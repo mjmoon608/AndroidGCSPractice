@@ -663,3 +663,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 }
+
+//롱 클릭을 한다 해당 좌표값을 배열에 넣는다. -> 추가 경로 입력할 것인지 다이얼로그로 여부 확인. ->(No) GuideMode실행한다. -> 배열에 들어있는 갯수만큼 GuideMode 반복 실행한다. 배열의 첫번째 뺴고 하면 될 둣.
+//                                          ->(YES) 추가 경로가 있을 시 롱 클릭 이벤트로 배열에 계속 넣는다. -> 새로운 좌표 넣을 때마다 다이얼로그로 확인.
