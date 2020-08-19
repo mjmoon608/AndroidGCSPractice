@@ -71,6 +71,7 @@ import org.droidplanner.services.android.impl.core.gcs.follow.Follow;
 import org.w3c.dom.Text;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, DroneListener, TowerListener, LinkListener {
@@ -99,6 +100,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     static LatLng mGuidedPoint; //가이드모드 목적지 저장
     static Marker mMarkerGuide = new com.naver.maps.map.overlay.Marker(); //GCS 위치 표시  마커 옵션
     static OverlayImage guideIcon = OverlayImage.fromResource(R.drawable.droneimg); // 가이드 모드 아이콘 설정
+
+    private ArrayList<LatLng> guideArray = new ArrayList<>();
+    private ArrayList<Marker> guideMarkers = new ArrayList<>();
+    private int guideMarker_index = 0;
 
     private boolean isGoing = false; // 가이드모드로 목적지까지 이동중인지 아닌지 판단.
 
@@ -600,19 +605,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                             public void onSuccess() {
                                 isGoing = true;
+                                //guideMode LatLng ArrayList 확인 후 계속 반복해야하는데 checkGoal도 수정해야할 듯
                                 ControlApi.getApi(drone).goTo(point, true, null);
-
                             }
 
                             @Override
 
                             public void onError(int i) {
                                 isGoing = false;
+                                guideMarker_index = 0;
+                                //guideArray, guideMarkers 삭제 추가
+                                for(int j = 0 ; j<guideMarkers.size() ; j++){
+                                    guideMarkers.get(j).setMap(null);
+                                }
+                                guideArray.clear();
+                                guideMarkers.clear();
                             }
 
                             @Override
                             public void onTimeout() {
                                 isGoing = false;
+                                guideMarker_index = 0;
+                                //guideArray, guideMarkers 삭제 추가
+                                for(int j = 0 ; j<guideMarkers.size() ; j++){
+                                    guideMarkers.get(j).setMap(null);
+                                }
+                                guideArray.clear();
+                                guideMarkers.clear();
                             }
                         });
             }
@@ -641,6 +660,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.mMap = naverMap;
         mMap.setMapType(NaverMap.MapType.Satellite);
 
+
         UiSettings uiSettings = mMap.getUiSettings();
         uiSettings.setScaleBarEnabled(false);
         uiSettings.setZoomControlEnabled(false);
@@ -649,12 +669,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onMapLongClick(@NonNull PointF pointF, @NonNull LatLng latLng) {
-                Marker goalMarker = new Marker();
-                goalMarker.setPosition(new LatLng(latLng.latitude, latLng.longitude));
-                goalMarker.setMap(mMap);
+//                Marker goalMarker = new Marker();
+//                goalMarker.setPosition(new LatLng(latLng.latitude, latLng.longitude));
+//                goalMarker.setMap(mMap);
+                Marker touchMarker = new Marker();
+
+                guideArray.add(new LatLng(latLng.latitude, latLng.longitude));
+                touchMarker.setPosition(new LatLng(latLng.latitude, latLng.longitude));
+                guideMarkers.add(touchMarker);
+                guideMarkers.get(guideMarker_index).setMap(mMap);
+
 
                 GuideModeDialog(drone, new LatLong(latLng.latitude, latLng.longitude));
-
+                guideMarker_index++;
             }
         });
 
